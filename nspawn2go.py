@@ -1,6 +1,23 @@
 #!/usr/bin/env python3
 """
-Sample usage: VMNAME=vm1 VMGRAPHICS=1 VMDISPLAY=5 VMDESKTOP=icewm python3 nspawn2go.py
+Copyright 2021 Alexei Boronine
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Interactive mode:         python3 nspawn2go.py
+Sample automated usage:   VMNAME=vm1 VMGRAPHICS=1 VMDISPLAY=5 VMDESKTOP=icewm python3 nspawn2go.py
 """
 
 import os
@@ -163,7 +180,7 @@ F_SSHD_CONF = F_SSHD_CONFDIR / 'custom_port.conf'
 INCLUDE = [
     # needed for 'machinectl login'
     'dbus',
-    # needed for 'machinectl start' (not needed for simple 'system-nspawn')
+    # needed for 'machinectl start' (not needed for basic 'system-nspawn' usage)
     'systemd',
     # We are including sudo by default
     'sudo'
@@ -171,8 +188,8 @@ INCLUDE = [
 if VMGRAPHICS:
     INCLUDE.extend([
         'tigervnc-standalone-server',
-        # 'mate-desktop-environment-core',
-        'dbus-x11',  # This package is necessary for lxqt settings, pcmanfm-qt, thunar settings and many other programs
+        # This package is necessary for lxqt settings, pcmanfm-qt, thunar settings and many other programs
+        'dbus-x11',
     ])
     if VMDESKTOP == 'icewm':
         INCLUDE.extend([
@@ -180,6 +197,8 @@ if VMGRAPHICS:
         ])
     elif VMDESKTOP == 'lxqt':
         INCLUDE.extend([
+            # This package is necessary
+            'libpam-systemd',
             'lxqt-core',
         ])
     elif VMDESKTOP == 'xfce4':
