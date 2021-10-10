@@ -55,10 +55,16 @@ You can manage these VMs using [machinectl](https://www.freedesktop.org/software
 Host dependencies:
 
 - python3
-- systemd-container (provides the `machinectl` binary)
+- systemd-container (provides `machinectl`)
 - debootstrap
 
-Run:
+On Debian/Ubuntu hosts:
+
+```
+apt-get install python3 systemd-container debootstrap
+```
+
+Download and run nspawn2go:
 
 ```
 wget https://raw.githubusercontent.com/boronine/nspawn2go/master/nspawn2go.py
