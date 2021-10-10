@@ -154,7 +154,7 @@ if VMGRAPHICS:
                        prompt="VNC display resolution",
                        default=VMGEOMETRY)
 
-VMPASS = param('VMDISPLAY',
+VMPASS = param('VMPASS',
                prompt="User password",
                default='debian')
 
