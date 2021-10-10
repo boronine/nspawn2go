@@ -2,7 +2,8 @@
 
 ## What is it?
 
-An interactive script to provision lightweight Debian VMs on your Linux host.
+An interactive script to provision lightweight Debian VMs. Access your tiny VMs via
+SSH or VNC.
 
 ```
 sudo python3 nspawn2go.py
