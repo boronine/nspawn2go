@@ -4,6 +4,10 @@
 
 An interactive script to provision lightweight Debian VMs on your Linux host.
 
+```
+sudo python3 nspawn2go.py
+```
+
 ## How does it work?
 
 Modern systemd-based Linux hosts come equipped with a lightweight container system called
