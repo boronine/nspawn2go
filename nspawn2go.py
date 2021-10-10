@@ -297,3 +297,4 @@ except BaseException as e:
     print_red("Something went wrong with the installation, run this to clean up your system:")
     print_red(f"    rm -rf {D_MACHINE}")
     print_red(f"    rm {F_NSPAWN}")
+    raise e
