@@ -21,6 +21,7 @@ Sample automated usage:   VMNAME=vm1 VMGRAPHICS=1 VMDISPLAY=5 VMDESKTOP=icewm py
 """
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -29,6 +30,10 @@ from pathlib import Path
 
 def print_blue(s: str):
     print(f'\033[94m{s}\033[0m')
+
+
+def print_cyan(s: str):
+    print(f'\033[96m{s}\033[0m')
 
 
 def print_green(s: str):
@@ -205,16 +210,43 @@ if VMGRAPHICS:
             'xfce4-terminal'
         ])
 
-INCLUDE_OPT = '' if len(INCLUDE) == 0 else '--include=' + ','.join(INCLUDE)
+DEBOOTSTRAP_OPTS = ['--variant=minbase']
+if len(INCLUDE) > 0:
+    pgks = ','.join(INCLUDE)
+    DEBOOTSTRAP_OPTS.append(f'--include={pgks}')
+
+
+def run_local(command: str):
+    print_cyan(command)
+    subprocess.run(command, check=True, shell=True)
+
+
+def run_nspawn(command: str, user='root'):
+    command_spawn = f"systemd-nspawn --private-users={PRIVATE_USERS} --user={user} --machine={VMNAME} /bin/sh -c '{command}'"
+    run_local(command_spawn)
+
 
 try:
 
     D_CACHE_DEB.mkdir(parents=True, exist_ok=True)
     os.chdir(D_MACHINES)
-    subprocess.run(
-        f'debootstrap --variant minbase {INCLUDE_OPT} --cache-dir {D_CACHE_DEB} {VMRELEASE} {VMNAME} http://deb.debian.org/debian/',
-        check=True,
-        shell=True)
+    p = subprocess.run('debootstrap --version', stdout=subprocess.PIPE, shell=True, encoding='utf-8')
+    debootstrap_version_m = re.search('(\\d+\\.)+\\d+', p.stdout)
+    if debootstrap_version_m is None:
+        print_red("Could not detect debootstrap version")
+        sys.exit(2)
+
+    debootstrap_version = debootstrap_version_m.group(0)
+    print('debootstrap version detected:', debootstrap_version)
+
+    [v1, v2, v3] = [int(i) for i in debootstrap_version.split('.')]
+    # Minimum version that supports --cache-dir is 1.0.97
+    # https://metadata.ftp-master.debian.org/changelogs//main/d/debootstrap/debootstrap_1.0.123_changelog
+    if not (v1 < 1 or v2 < 0 or v3 < 97):
+        DEBOOTSTRAP_OPTS.append('--cache-dir={D_CACHE_DEB}')
+
+    opts = ' '.join(DEBOOTSTRAP_OPTS)
+    run_local(f'debootstrap {opts} {VMRELEASE} {VMNAME} http://deb.debian.org/debian/')
 
     print('injecting hostname', F_HOSTNAME)
     F_HOSTNAME.write_text(f'{VMNAME}\n')
@@ -222,19 +254,12 @@ try:
     print('injecting sudoer', F_SUDOER)
     F_SUDOER.write_text(f'{USER_NAME} ALL=(ALL:ALL) ALL')
 
-
-    def run(command: str, user='root'):
-        command_spawn = f"systemd-nspawn --private-users={PRIVATE_USERS} --user={user} --machine={VMNAME} /bin/sh -c '{command}'"
-        print('#', command_spawn)
-        subprocess.run(command_spawn, check=True, shell=True)
-
-
     if VMSSHD:
         print('injecting sshd port', F_SSHD_CONF)
         F_SSHD_CONFDIR.mkdir(parents=True)
         F_SSHD_CONF.write_text(f'Port {VMSSHDPORT}')
         # We have to install openssh-server after everything else, so it picks up port config
-        run('apt-get install -y openssh-server')
+        run_nspawn('apt-get install -y openssh-server')
 
     print('injecting hostname', F_HOSTS)
     with F_HOSTS.open('a') as f:
@@ -251,9 +276,9 @@ try:
     ''')
 
     # NOTE: This command accepts --password "{VMPASS}", but this doesn't work for some reason
-    run(f'useradd --create-home --shell /bin/bash {USER_NAME}')
-    run(f'echo {USER_NAME}:{VMPASS} | chpasswd')
-    run(f'echo root:{VMPASS} | chpasswd')
+    run_nspawn(f'useradd --create-home --shell /bin/bash {USER_NAME}')
+    run_nspawn(f'echo {USER_NAME}:{VMPASS} | chpasswd')
+    run_nspawn(f'echo root:{VMPASS} | chpasswd')
 
     if VMGRAPHICS:
         # NOTE: session corresponds to files like /usr/share/xsessions/XYZ.desktop
@@ -266,12 +291,12 @@ try:
         else:
             raise Exception()
         VNC_CONFIG = f'session={session}\\ngeometry={VMGEOMETRY}\\nlocalhost=no\\nalwaysshared'
-        run(f'echo ":{VMDISPLAY}={USER_NAME}" >> /etc/tigervnc/vncserver.users')
-        run(f'mkdir /home/{USER_NAME}/.vnc', user=USER_NAME)
-        run(f'echo {VMPASS} | vncpasswd -f > /home/{USER_NAME}/.vnc/passwd', user=USER_NAME)
-        run(f'chmod 600 /home/{USER_NAME}/.vnc/passwd')
-        run(f'echo "{VNC_CONFIG}" > /home/{USER_NAME}/.vnc/config', user=USER_NAME)
-        run(f'systemctl enable tigervncserver@:{VMDISPLAY}')
+        run_nspawn(f'echo ":{VMDISPLAY}={USER_NAME}" >> /etc/tigervnc/vncserver.users')
+        run_nspawn(f'mkdir /home/{USER_NAME}/.vnc', user=USER_NAME)
+        run_nspawn(f'echo {VMPASS} | vncpasswd -f > /home/{USER_NAME}/.vnc/passwd', user=USER_NAME)
+        run_nspawn(f'chmod 600 /home/{USER_NAME}/.vnc/passwd')
+        run_nspawn(f'echo "{VNC_CONFIG}" > /home/{USER_NAME}/.vnc/config', user=USER_NAME)
+        run_nspawn(f'systemctl enable tigervncserver@:{VMDISPLAY}')
 
     print("Setup finished")
     print_blue(f'root password: {VMPASS}')
