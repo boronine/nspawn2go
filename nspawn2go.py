@@ -77,7 +77,7 @@ def param(env: str, prompt: str, default, boolean=False, integer=False, choices=
             return b
         elif integer:
             i = default if t == '' else parse_integer(t)
-            if t is None:
+            if i is None:
                 print_red("Invalid integer")
                 continue
             print_green(f'{env}={i}')
