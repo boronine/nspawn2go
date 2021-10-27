@@ -246,7 +246,7 @@ try:
         DEBOOTSTRAP_OPTS.append('--cache-dir={D_CACHE_DEB}')
 
     opts = ' '.join(DEBOOTSTRAP_OPTS)
-    run_local(f'debootstrap {opts} {VMRELEASE} {VMNAME} http://deb.debian.org/debian/')
+    run_local(f'debootstrap --arch=armel {opts} {VMRELEASE} {VMNAME} http://deb.debian.org/debian/')
 
     print('injecting hostname', F_HOSTNAME)
     F_HOSTNAME.write_text(f'{VMNAME}\n')
