@@ -18,7 +18,7 @@ sudo python3 nspawn2go.py
 - VNC geometry: `1280x720` (default)
   - Try `800x480` for a minimal desktop
 - Graphical environments: `icewm` or `xfce4`
-- Root directory: `/var/lib/machines/VNNAME`
+- Root directory: `/var/lib/machines/VMNAME`
 
 ## What is it for?
 
@@ -41,7 +41,7 @@ Modern systemd-based Linux hosts come equipped with a lightweight container syst
 practical purposes, these containers are lightweight, portable VMs.
 
 Instead of a disk image, these containers boot into a directory on your host: 
-`/var/lib/machines/VNNAME`. That's why systemd-nspawn is known as "chroot on steroids".
+`/var/lib/machines/VMNAME`. That's why systemd-nspawn is known as "chroot on steroids".
 
 Like Docker, you can use these containers to run ad-hoc commands but what makes this most
 interesting is when you run systemd inside the container to bring up an isolated Linux
