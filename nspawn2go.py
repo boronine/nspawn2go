@@ -171,9 +171,9 @@ VNC_PORT = 5900 + VMDISPLAY
 # This is a security feature of systemd-nspawn that is a pain in the ass to work with
 PRIVATE_USERS = 'no'
 
-DHOST_HOME = Path.home()
+DHOST_HOME = Path.home().resolve()
 # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-D_CACHE = os.environ.get('XDG_CACHE_HOME', DHOST_HOME / '.cache')
+D_CACHE = DHOST_HOME / '.cache'
 D_CACHE_DEB = D_CACHE / 'b9_provision_nspawn_deb'
 D_MACHINES = Path('/var/lib/machines')
 D_NSPAWN = Path('/etc/systemd/nspawn')
