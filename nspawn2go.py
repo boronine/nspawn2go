@@ -114,6 +114,8 @@ if shutil.which('debootstrap') is None:
 
 # Configuration
 
+VMARCH = os.environ.get('VMARCH', None)
+
 VMNAME = param('VMNAME',
                prompt="Give your VM a name.",
                default='vm1')
@@ -243,10 +245,15 @@ try:
     # Minimum version that supports --cache-dir is 1.0.97
     # https://metadata.ftp-master.debian.org/changelogs//main/d/debootstrap/debootstrap_1.0.123_changelog
     if not (v1 < 1 or v2 < 0 or v3 < 97):
-        DEBOOTSTRAP_OPTS.append('--cache-dir={D_CACHE_DEB}')
+        DEBOOTSTRAP_OPTS.append(f'--cache-dir={D_CACHE_DEB}')
+
+    if VMARCH is not None:
+        DEBOOTSTRAP_OPTS.append(f'--arch={VMARCH}')
+
+    DEBOOTSTRAP_OPTS.extend([VMRELEASE, VMNAME, 'http://deb.debian.org/debian/'])
 
     opts = ' '.join(DEBOOTSTRAP_OPTS)
-    run_local(f'debootstrap {opts} {VMRELEASE} {VMNAME} http://deb.debian.org/debian/')
+    run_local(f'debootstrap {opts}')
 
     print('injecting hostname', F_HOSTNAME)
     F_HOSTNAME.write_text(f'{VMNAME}\n')
