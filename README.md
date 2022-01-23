@@ -64,6 +64,12 @@ On Debian/Ubuntu hosts:
 apt-get install python3 systemd-container debootstrap
 ```
 
+On Arch hosts:
+
+```
+pacman -S python3 debootstrap
+```
+
 Download and run nspawn2go:
 
 ```
